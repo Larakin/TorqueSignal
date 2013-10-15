@@ -118,9 +118,11 @@ public class ShowMorseActivity extends Activity {
     }
 
     Thread flasher = new Thread(new Runnable() {
-        private int DOT = 100;
-        private int DASH = 350;
-        private int SPACE = 300;
+        private int TIMEUNIT = 75;
+        private int DOT = 1;
+        private int DASH = 3;
+        private int LETTER_GAP = 3;
+        private int WORD_GAP = 7;
 
         @Override
         public void run() {
@@ -135,23 +137,25 @@ public class ShowMorseActivity extends Activity {
             }
 
             for  (char ch: dots.toCharArray()) {
-                Log.v(TAG, "dot:" + ch);
-                switch(ch) {
-                    case '.':
-                        flash(DOT);
-                        break;
-                    case '-':
-                        flash(DASH);
-                        break;
-                    case ' ':
-                        try {
-                            Thread.sleep(SPACE);
-                        } catch (Exception e) {
-                            e.getLocalizedMessage();
-                        }
-                        break;
+                try {
+                    Log.v(TAG, "dot:" + ch);
+                    switch(ch) {
+                        case '.':
+                            flash(DOT);
+                            break;
+                        case '-':
+                            flash(DASH);
+                            break;
+                        case ' ':
+                            Thread.sleep(WORD_GAP * TIMEUNIT);
+                            break;
+                    }
+                    Thread.sleep(LETTER_GAP * TIMEUNIT);
+                } catch (Exception e) {
+                    e.getLocalizedMessage();
                 }
             }
+
 
 
             if (camera != null) {
@@ -160,20 +164,20 @@ public class ShowMorseActivity extends Activity {
             }
         }
 
-        private void flash(int millis) {
+        private void flash(int signal) {
             try {
                 params = camera.getParameters();
                 params.setFlashMode(Parameters.FLASH_MODE_TORCH);
                 camera.setParameters(params);
                 camera.startPreview();
 
-                Thread.sleep(millis);
+                Thread.sleep(signal*TIMEUNIT);
 
                 //params = camera.getParameters();
                 params.setFlashMode(Parameters.FLASH_MODE_OFF);
                 camera.setParameters(params);
                 camera.stopPreview();
-                Thread.sleep(50);
+                Thread.sleep(TIMEUNIT);
             } catch (Exception e) {
                 e.getLocalizedMessage();
             }

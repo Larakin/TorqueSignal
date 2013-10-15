@@ -1,4 +1,5 @@
 TorqueSignal
 ============
 
-Playing with android code
+Slowly teaching myself Android Dev
+Attempting to create a Morse code converter.

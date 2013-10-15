@@ -9,12 +9,21 @@ import android.os.Build;
 import android.content.Intent;
 import android.widget.TextView;
 import android.util.Log;
+import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
+import android.content.pm.PackageManager;
 
 import java.util.Hashtable;
 
 public class ShowMorseActivity extends Activity {
 
     private static final String TAG = "ShowMorse";
+
+    private Camera camera;
+    private boolean isFlashOn;
+    private boolean hasFlash;
+    private String dots;
+    Parameters params;
 
     private Hashtable code = new Hashtable();
 
@@ -28,7 +37,6 @@ public class ShowMorseActivity extends Activity {
 
         Intent intent = getIntent();
         String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
-        String dots;
 
         fillCodeHash();
         dots = convertMessage(message);
@@ -38,6 +46,12 @@ public class ShowMorseActivity extends Activity {
         textView.setText(dots);
 
         setContentView(textView);
+
+        hasFlash = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+
+        if (hasFlash) {
+            flasher.run();
+        }
     }
 
     private void fillCodeHash() {
@@ -90,6 +104,83 @@ public class ShowMorseActivity extends Activity {
         }
 
         return dots;
+    }
+
+    private void runFlasher() {
+        flasher.run();
+    }
+
+    Thread flasher = new Thread(new Runnable() {
+        private int DOT = 100;
+        private int DASH = 350;
+        private int SPACE = 300;
+
+        @Override
+        public void run() {
+
+            if (camera == null) {
+                try {
+                    camera = Camera.open();
+                    params = camera.getParameters();
+                } catch (RuntimeException e) {
+                    Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
+                }
+            }
+
+            for  (char ch: dots.toCharArray()) {
+                Log.v(TAG, "dot:" + ch);
+                switch(ch) {
+                    case '.':
+                        flash(DOT);
+                        break;
+                    case '-':
+                        flash(DASH);
+                        break;
+                    case ' ':
+                        try {
+                            Thread.sleep(SPACE);
+                        } catch (Exception e) {
+                            e.getLocalizedMessage();
+                        }
+                        break;
+                }
+            }
+
+
+            if (camera != null) {
+                camera.release();
+                camera = null;
+            }
+        }
+
+        private void flash(int millis) {
+            try {
+                params = camera.getParameters();
+                params.setFlashMode(Parameters.FLASH_MODE_TORCH);
+                camera.setParameters(params);
+                camera.startPreview();
+
+                Thread.sleep(millis);
+
+                //params = camera.getParameters();
+                params.setFlashMode(Parameters.FLASH_MODE_OFF);
+                camera.setParameters(params);
+                camera.stopPreview();
+                Thread.sleep(50);
+            } catch (Exception e) {
+                e.getLocalizedMessage();
+            }
+        }
+    });
+
+    private void getCamera() {
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
     }
 
     /**

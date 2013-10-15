@@ -100,7 +100,14 @@ public class ShowMorseActivity extends Activity {
 
         for  (char ch: text.toUpperCase().toCharArray()) {
             Log.v(TAG, "Char:" + ch);
-            dots += code.get(String.valueOf(ch)) + " ";
+            switch(ch) {
+                case ' ':
+                    dots += "  ";
+                    break;
+                default:
+                    dots += code.get(String.valueOf(ch)) + " ";
+                    break;
+            }
         }
 
         return dots;

@@ -123,28 +123,13 @@ public class ShowMorseActivity extends Activity {
     }
 
     private class FlashIt extends AsyncTask<String, Void, Boolean> {
-        /** The system calls this to perform work in a worker thread and
-         * delivers it the parameters given to AsyncTask.execute() */
-        protected Boolean doInBackground(String... Alldots) {
-
-            flash();
-
-            return true;
-        }
-
-        /** The system calls this to perform work in the UI thread and delivers
-         * the result from doInBackground() */
-        protected void onPostExecute(Boolean result) {
-
-        }
-
         private int TIMEUNIT = 75;
         private int DOT = 1;
         private int DASH = 3;
         private int LETTER_GAP = 3;
         private int WORD_GAP = 7;
 
-        public void flash() {
+        private void flashMessage(String message) {
 
             if (camera == null) {
                 try {
@@ -155,7 +140,7 @@ public class ShowMorseActivity extends Activity {
                 }
             }
 
-            for  (char ch: dots.toCharArray()) {
+            for  (char ch: message.toCharArray()) {
                 try {
                     Log.v(TAG, "dot:" + ch);
                     switch(ch) {
@@ -200,6 +185,21 @@ public class ShowMorseActivity extends Activity {
             } catch (Exception e) {
                 e.getLocalizedMessage();
             }
+        }
+
+        /** The system calls this to perform work in a worker thread and
+         * delivers it the parameters given to AsyncTask.execute() */
+        protected Boolean doInBackground(String... Alldots) {
+
+            flashMessage(Alldots[0]);
+
+            return true;
+        }
+
+        /** The system calls this to perform work in the UI thread and delivers
+         * the result from doInBackground() */
+        protected void onPostExecute(Boolean result) {
+
         }
     }
 

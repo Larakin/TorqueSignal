@@ -21,7 +21,6 @@ public class ShowMorseActivity extends Activity {
     private static final String TAG = "ShowMorse";
 
     private Camera camera;
-    private boolean isFlashOn;
     private boolean hasFlash;
     private String dots;
     Parameters params;
@@ -128,7 +127,7 @@ public class ShowMorseActivity extends Activity {
          * delivers it the parameters given to AsyncTask.execute() */
         protected Boolean doInBackground(String... Alldots) {
 
-            flasher.run();
+            flash();
 
             return true;
         }
@@ -139,72 +138,69 @@ public class ShowMorseActivity extends Activity {
 
         }
 
-        Thread flasher = new Thread(new Runnable() {
-            private int TIMEUNIT = 75;
-            private int DOT = 1;
-            private int DASH = 3;
-            private int LETTER_GAP = 3;
-            private int WORD_GAP = 7;
+        private int TIMEUNIT = 75;
+        private int DOT = 1;
+        private int DASH = 3;
+        private int LETTER_GAP = 3;
+        private int WORD_GAP = 7;
 
-            @Override
-            public void run() {
+        public void flash() {
 
-                if (camera == null) {
-                    try {
-                        camera = Camera.open();
-                        params = camera.getParameters();
-                    } catch (RuntimeException e) {
-                        Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
-                    }
-                }
-
-                for  (char ch: dots.toCharArray()) {
-                    try {
-                        Log.v(TAG, "dot:" + ch);
-                        switch(ch) {
-                            case '.':
-                                flash(DOT);
-                                break;
-                            case '-':
-                                flash(DASH);
-                                break;
-                            case ' ':
-                                Thread.sleep(WORD_GAP * TIMEUNIT);
-                                break;
-                        }
-                        Thread.sleep(LETTER_GAP * TIMEUNIT);
-                    } catch (Exception e) {
-                        e.getLocalizedMessage();
-                    }
-                }
-
-
-
-                if (camera != null) {
-                    camera.release();
-                    camera = null;
+            if (camera == null) {
+                try {
+                    camera = Camera.open();
+                    params = camera.getParameters();
+                } catch (RuntimeException e) {
+                    Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
                 }
             }
 
-            private void flash(int signal) {
+            for  (char ch: dots.toCharArray()) {
                 try {
-                    params = camera.getParameters();
-                    params.setFlashMode(Parameters.FLASH_MODE_TORCH);
-                    camera.setParameters(params);
-                    camera.startPreview();
-
-                    Thread.sleep(signal*TIMEUNIT);
-
-                    //params = camera.getParameters();
-                    params.setFlashMode(Parameters.FLASH_MODE_OFF);
-                    camera.setParameters(params);
-                    camera.stopPreview();
-                    Thread.sleep(TIMEUNIT);
+                    Log.v(TAG, "dot:" + ch);
+                    switch(ch) {
+                        case '.':
+                            flash(DOT);
+                            break;
+                        case '-':
+                            flash(DASH);
+                            break;
+                        case ' ':
+                            Thread.sleep(WORD_GAP * TIMEUNIT);
+                            break;
+                    }
+                    Thread.sleep(LETTER_GAP * TIMEUNIT);
                 } catch (Exception e) {
                     e.getLocalizedMessage();
                 }
             }
-        });
+
+
+
+            if (camera != null) {
+                camera.release();
+                camera = null;
+            }
+        }
+
+        private void flash(int signal) {
+            try {
+                params = camera.getParameters();
+                params.setFlashMode(Parameters.FLASH_MODE_TORCH);
+                camera.setParameters(params);
+                camera.startPreview();
+
+                Thread.sleep(signal*TIMEUNIT);
+
+                //params = camera.getParameters();
+                params.setFlashMode(Parameters.FLASH_MODE_OFF);
+                camera.setParameters(params);
+                camera.stopPreview();
+                Thread.sleep(TIMEUNIT);
+            } catch (Exception e) {
+                e.getLocalizedMessage();
+            }
+        }
     }
 
     /**

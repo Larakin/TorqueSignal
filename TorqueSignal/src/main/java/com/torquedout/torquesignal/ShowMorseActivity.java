@@ -134,7 +134,9 @@ public class ShowMorseActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        flasher.cancel(true);
+        if (flasher != null) {
+            flasher.cancel(true);
+        }
         super.onDestroy();
 
     }

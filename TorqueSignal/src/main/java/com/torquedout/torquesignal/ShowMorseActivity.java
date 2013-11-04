@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.AsyncTask;
 import android.content.Intent;
 import android.widget.TextView;
+import android.widget.Button;
 import android.util.Log;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -45,12 +46,22 @@ public class ShowMorseActivity extends Activity {
         dots = convertMessage(message);
 
         TextView textView = (TextView) findViewById(R.id.converted);
-        //TextView textView = new TextView(this);
         textView.setTextSize(40);
         textView.setText(dots);
 
-        //setContentView(textView);
 
+        try {
+            hasFlash = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+        } catch (RuntimeException e) {
+            Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
+        }
+
+        if (!hasFlash){
+            findViewById(R.id.flash_button).setEnabled(false);
+        }
+        else {
+            findViewById(R.id.flash_button).setEnabled(true);
+        }
     }
 
     private void fillCodeHash() {
@@ -128,20 +139,17 @@ public class ShowMorseActivity extends Activity {
             index++;
         }
 
+        if (progIndex == -1) {
+            findViewById(R.id.flash_button).setEnabled(true);
+        }
 
         textView.setText(Html.fromHtml(text));
     }
 
     public void runFlasher(View view) {
-        try {
-            hasFlash = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-
-            if (hasFlash) {
-                //flasher.run();
-                flasher = new FlashIt().execute(dots);
-            }
-        } catch (RuntimeException e) {
-            Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
+        if (hasFlash) {
+            flasher = new FlashIt().execute(dots);
+            findViewById(R.id.flash_button).setEnabled(false);
         }
     }
 

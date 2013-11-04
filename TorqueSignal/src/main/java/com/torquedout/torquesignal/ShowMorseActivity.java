@@ -14,6 +14,7 @@ import android.util.Log;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.content.pm.PackageManager;
+import android.text.Html;
 
 import java.util.Hashtable;
 
@@ -111,6 +112,26 @@ public class ShowMorseActivity extends Activity {
         return dots;
     }
 
+    private void showProgress(Integer progIndex) {
+        TextView textView = (TextView) findViewById(R.id.converted);
+
+        String text = "";
+        int index = 0;
+
+        for  (char ch: dots.toCharArray()) {
+            if(progIndex == index) {
+                text += "<font color=#FF0000>" + ch + "</font>";
+            }
+            else {
+                text += ch;
+            }
+            index++;
+        }
+
+
+        textView.setText(Html.fromHtml(text));
+    }
+
     public void runFlasher(View view) {
         try {
             hasFlash = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
@@ -141,12 +162,14 @@ public class ShowMorseActivity extends Activity {
 
     }
 
-    private class FlashIt extends AsyncTask<String, Void, Boolean> {
+    private class FlashIt extends AsyncTask<String, Integer, Boolean> {
         private int TIMEUNIT = 75;
         private int DOT = 1;
         private int DASH = 3;
         private int LETTER_GAP = 3;
         private int WORD_GAP = 7;
+
+        private int messageLength = 1;
 
         private void flashMessage(String message) {
 
@@ -159,7 +182,9 @@ public class ShowMorseActivity extends Activity {
                 }
             }
 
+            int index = 0;
             for  (char ch: message.toCharArray()) {
+                index++;
                 if(isCancelled()) {break;}
                 try {
                     Log.v(TAG, "dot:" + ch);
@@ -178,9 +203,8 @@ public class ShowMorseActivity extends Activity {
                 } catch (Exception e) {
                     e.getLocalizedMessage();
                 }
+                publishProgress(index);
             }
-
-
 
             if (camera != null) {
                 camera.release();
@@ -210,16 +234,25 @@ public class ShowMorseActivity extends Activity {
         /** The system calls this to perform work in a worker thread and
          * delivers it the parameters given to AsyncTask.execute() */
         protected Boolean doInBackground(String... Alldots) {
-
             flashMessage(Alldots[0]);
-
             return true;
+        }
+
+        protected void onPreExecute() {
+            showProgress(0);
         }
 
         /** The system calls this to perform work in the UI thread and delivers
          * the result from doInBackground() */
         protected void onPostExecute(Boolean result) {
+            showProgress(-1);
+        }
 
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            showProgress(values[0]);
+            Log.v(TAG, "Updating... " + values[0]);
         }
     }
 

@@ -134,8 +134,9 @@ public class ShowMorseActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        super.onStop();
         flasher.cancel(true);
+        super.onDestroy();
+
     }
 
     private class FlashIt extends AsyncTask<String, Void, Boolean> {

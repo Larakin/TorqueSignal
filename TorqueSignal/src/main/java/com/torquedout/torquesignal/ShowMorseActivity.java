@@ -6,6 +6,7 @@ import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.os.Build;
+import android.os.AsyncTask;
 import android.content.Intent;
 import android.widget.TextView;
 import android.util.Log;
@@ -50,7 +51,8 @@ public class ShowMorseActivity extends Activity {
         hasFlash = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
         if (hasFlash) {
-            flasher.run();
+            //flasher.run();
+            new FlashIt().execute(dots);
         }
     }
 
@@ -113,85 +115,96 @@ public class ShowMorseActivity extends Activity {
         return dots;
     }
 
-    private void runFlasher() {
-        flasher.run();
-    }
 
-    Thread flasher = new Thread(new Runnable() {
-        private int TIMEUNIT = 75;
-        private int DOT = 1;
-        private int DASH = 3;
-        private int LETTER_GAP = 3;
-        private int WORD_GAP = 7;
-
-        @Override
-        public void run() {
-
-            if (camera == null) {
-                try {
-                    camera = Camera.open();
-                    params = camera.getParameters();
-                } catch (RuntimeException e) {
-                    Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
-                }
-            }
-
-            for  (char ch: dots.toCharArray()) {
-                try {
-                    Log.v(TAG, "dot:" + ch);
-                    switch(ch) {
-                        case '.':
-                            flash(DOT);
-                            break;
-                        case '-':
-                            flash(DASH);
-                            break;
-                        case ' ':
-                            Thread.sleep(WORD_GAP * TIMEUNIT);
-                            break;
-                    }
-                    Thread.sleep(LETTER_GAP * TIMEUNIT);
-                } catch (Exception e) {
-                    e.getLocalizedMessage();
-                }
-            }
-
-
-
-            if (camera != null) {
-                camera.release();
-                camera = null;
-            }
-        }
-
-        private void flash(int signal) {
-            try {
-                params = camera.getParameters();
-                params.setFlashMode(Parameters.FLASH_MODE_TORCH);
-                camera.setParameters(params);
-                camera.startPreview();
-
-                Thread.sleep(signal*TIMEUNIT);
-
-                //params = camera.getParameters();
-                params.setFlashMode(Parameters.FLASH_MODE_OFF);
-                camera.setParameters(params);
-                camera.stopPreview();
-                Thread.sleep(TIMEUNIT);
-            } catch (Exception e) {
-                e.getLocalizedMessage();
-            }
-        }
-    });
-
-    private void getCamera() {
-
-    }
 
     @Override
     protected void onStop() {
         super.onStop();
 
+    }
+
+    private class FlashIt extends AsyncTask<String, Void, Boolean> {
+        /** The system calls this to perform work in a worker thread and
+         * delivers it the parameters given to AsyncTask.execute() */
+        protected Boolean doInBackground(String... Alldots) {
+
+            flasher.run();
+
+            return true;
+        }
+
+        /** The system calls this to perform work in the UI thread and delivers
+         * the result from doInBackground() */
+        protected void onPostExecute(Boolean result) {
+
+        }
+
+        Thread flasher = new Thread(new Runnable() {
+            private int TIMEUNIT = 75;
+            private int DOT = 1;
+            private int DASH = 3;
+            private int LETTER_GAP = 3;
+            private int WORD_GAP = 7;
+
+            @Override
+            public void run() {
+
+                if (camera == null) {
+                    try {
+                        camera = Camera.open();
+                        params = camera.getParameters();
+                    } catch (RuntimeException e) {
+                        Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
+                    }
+                }
+
+                for  (char ch: dots.toCharArray()) {
+                    try {
+                        Log.v(TAG, "dot:" + ch);
+                        switch(ch) {
+                            case '.':
+                                flash(DOT);
+                                break;
+                            case '-':
+                                flash(DASH);
+                                break;
+                            case ' ':
+                                Thread.sleep(WORD_GAP * TIMEUNIT);
+                                break;
+                        }
+                        Thread.sleep(LETTER_GAP * TIMEUNIT);
+                    } catch (Exception e) {
+                        e.getLocalizedMessage();
+                    }
+                }
+
+
+
+                if (camera != null) {
+                    camera.release();
+                    camera = null;
+                }
+            }
+
+            private void flash(int signal) {
+                try {
+                    params = camera.getParameters();
+                    params.setFlashMode(Parameters.FLASH_MODE_TORCH);
+                    camera.setParameters(params);
+                    camera.startPreview();
+
+                    Thread.sleep(signal*TIMEUNIT);
+
+                    //params = camera.getParameters();
+                    params.setFlashMode(Parameters.FLASH_MODE_OFF);
+                    camera.setParameters(params);
+                    camera.stopPreview();
+                    Thread.sleep(TIMEUNIT);
+                } catch (Exception e) {
+                    e.getLocalizedMessage();
+                }
+            }
+        });
     }
 
     /**
@@ -222,3 +235,4 @@ public class ShowMorseActivity extends Activity {
     }
 
 }
+

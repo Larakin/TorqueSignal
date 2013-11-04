@@ -3,6 +3,7 @@ package com.torquedout.torquesignal;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.MenuItem;
+import android.view.View;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.os.Build;
@@ -23,6 +24,7 @@ public class ShowMorseActivity extends Activity {
     private Camera camera;
     private boolean hasFlash;
     private String dots;
+    private AsyncTask flasher;
     Parameters params;
 
     private Hashtable code = new Hashtable();
@@ -41,18 +43,13 @@ public class ShowMorseActivity extends Activity {
         fillCodeHash();
         dots = convertMessage(message);
 
-        TextView textView = new TextView(this);
+        TextView textView = (TextView) findViewById(R.id.converted);
+        //TextView textView = new TextView(this);
         textView.setTextSize(40);
         textView.setText(dots);
 
-        setContentView(textView);
+        //setContentView(textView);
 
-        hasFlash = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-
-        if (hasFlash) {
-            //flasher.run();
-            new FlashIt().execute(dots);
-        }
     }
 
     private void fillCodeHash() {
@@ -114,12 +111,31 @@ public class ShowMorseActivity extends Activity {
         return dots;
     }
 
+    public void runFlasher(View view) {
+        try {
+            hasFlash = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+
+            if (hasFlash) {
+                //flasher.run();
+                flasher = new FlashIt().execute(dots);
+            }
+        } catch (RuntimeException e) {
+            Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
+        }
+    }
+
 
 
     @Override
     protected void onStop() {
         super.onStop();
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onStop();
+        flasher.cancel(true);
     }
 
     private class FlashIt extends AsyncTask<String, Void, Boolean> {
@@ -141,6 +157,7 @@ public class ShowMorseActivity extends Activity {
             }
 
             for  (char ch: message.toCharArray()) {
+                if(isCancelled()) {break;}
                 try {
                     Log.v(TAG, "dot:" + ch);
                     switch(ch) {

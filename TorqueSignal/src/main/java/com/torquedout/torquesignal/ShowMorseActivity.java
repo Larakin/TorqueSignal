@@ -10,14 +10,14 @@ import android.os.Build;
 import android.os.AsyncTask;
 import android.content.Intent;
 import android.widget.TextView;
-import android.widget.Button;
 import android.util.Log;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.content.pm.PackageManager;
 import android.text.Html;
 
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ShowMorseActivity extends Activity {
 
@@ -29,43 +29,11 @@ public class ShowMorseActivity extends Activity {
     private AsyncTask flasher;
     Parameters params;
 
-    private Hashtable code = new Hashtable();
 
-    //@SuppressLint("NewApi")
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_morse);
-        // Show the Up button in the action bar.
-        setupActionBar();
-
-        Intent intent = getIntent();
-        String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
-
-        fillCodeHash();
-        dots = convertMessage(message);
-
-        TextView textView = (TextView) findViewById(R.id.converted);
-        textView.setTextSize(40);
-        textView.setText(dots);
-
-
-        try {
-            hasFlash = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-        } catch (RuntimeException e) {
-            Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
-        }
-
-        if (!hasFlash){
-            findViewById(R.id.flash_button).setEnabled(false);
-        }
-        else {
-            findViewById(R.id.flash_button).setEnabled(true);
-        }
-    }
-
-    private void fillCodeHash() {
-        //TODO: Better way to do this!
+    private static final Map<String, String> code;
+    static
+    {
+        code = new HashMap<String, String>();
         code.put("A",".-");
         code.put("B","-...");
         code.put("C","-.-.");
@@ -103,6 +71,39 @@ public class ShowMorseActivity extends Activity {
         code.put("8","---..");
         code.put("9","----.");
         code.put("0","-----");
+    }
+
+    //@SuppressLint("NewApi")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_morse);
+        // Show the Up button in the action bar.
+        setupActionBar();
+
+        Intent intent = getIntent();
+        String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+
+        //fillCodeHash();
+        dots = convertMessage(message);
+
+        TextView textView = (TextView) findViewById(R.id.converted);
+        textView.setTextSize(40);
+        textView.setText(dots);
+
+
+        try {
+            hasFlash = getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+        } catch (RuntimeException e) {
+            Log.e("Camera Error. Failed to Open. Error: ", e.getMessage());
+        }
+
+        if (!hasFlash){
+            findViewById(R.id.flash_button).setEnabled(false);
+        }
+        else {
+            findViewById(R.id.flash_button).setEnabled(true);
+        }
     }
 
     private String convertMessage(String text) {
